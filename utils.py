@@ -6,7 +6,7 @@ import streamlit as st
 
 def get_stock_data(symbol: str, period: str = "1y"):
     """
-    獲取股票數據
+    獲取單個股票數據
     """
     try:
         stock = yf.Ticker(symbol)
@@ -16,6 +16,56 @@ def get_stock_data(symbol: str, period: str = "1y"):
     except Exception as e:
         st.error(f"獲取股票數據時發生錯誤: {str(e)}")
         return None, None
+
+def get_multiple_stocks_data(symbols: list, period: str = "1y"):
+    """
+    獲取多個股票的數據
+    """
+    all_data = {}
+    all_info = {}
+
+    for symbol in symbols:
+        try:
+            stock = yf.Ticker(symbol)
+            hist = stock.history(period=period)
+            info = stock.info
+            all_data[symbol] = hist
+            all_info[symbol] = info
+        except Exception as e:
+            st.error(f"獲取股票 {symbol} 數據時發生錯誤: {str(e)}")
+
+    return all_data, all_info
+
+def normalize_stock_prices(data_dict, method='percent'):
+    """
+    標準化股票價格以便比較
+    method: 'percent' 或 'z-score'
+    """
+    normalized_data = {}
+
+    for symbol, data in data_dict.items():
+        if method == 'percent':
+            # 轉換為漲跌幅
+            first_price = data['Close'].iloc[0]
+            normalized_data[symbol] = (data['Close'] - first_price) / first_price * 100
+        elif method == 'z-score':
+            # Z-score標準化
+            mean = data['Close'].mean()
+            std = data['Close'].std()
+            normalized_data[symbol] = (data['Close'] - mean) / std
+
+    return normalized_data
+
+def calculate_correlation_matrix(data_dict):
+    """
+    計算股票之間的相關性矩陣
+    """
+    # 創建一個包含所有股票收盤價的DataFrame
+    close_prices = pd.DataFrame()
+    for symbol, data in data_dict.items():
+        close_prices[symbol] = data['Close']
+
+    return close_prices.corr()
 
 def format_number(number):
     """
