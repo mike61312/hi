@@ -130,7 +130,6 @@ if stock_symbol:
             freq='B'
         )[1:]
 
-        # 根據選擇的趨勢線類型添加不同的分析
         close_prices = hist_data['Close'].values
         days = np.arange(len(close_prices))
 
@@ -184,6 +183,37 @@ if stock_symbol:
                 fillcolor='rgba(255,82,82,0.1)'
             ))
 
+            # 分析結果顯示
+            predicted_end_price = predicted_prices[-1]
+            price_change = (predicted_end_price - close_prices[-1]) / close_prices[-1] * 100
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric(
+                    "預測目標價",
+                    f"${predicted_end_price:.2f}",
+                    f"{price_change:.1f}%"
+                )
+            with col2:
+                st.metric(
+                    "上限目標價",
+                    f"${upper_bound[-1]:.2f}",
+                    f"+{((upper_bound[-1]-close_prices[-1]) / close_prices[-1]*100):.1f}%"
+                )
+            with col3:
+                st.metric(
+                    "下限目標價",
+                    f"${lower_bound[-1]:.2f}",
+                    f"{((lower_bound[-1]-close_prices[-1]) / close_prices[-1]*100):.1f}%"
+                )
+
+            st.info(f"""
+            📈 預測分析（{prediction_days}天）:
+            - 當前價格: ${close_prices[-1]:.2f}
+            - 預測區間: ${lower_bound[-1]:.2f} ~ ${upper_bound[-1]:.2f}
+            - 信心水平: {confidence_level}%
+
+            ⚠️ 注意：此預測基於歷史數據趨勢，僅供參考。實際市場走勢可能受多種因素影響而有所不同。
+            """)
         else:
             # 找出支撐或阻力點
             points = find_support_resistance_points(
@@ -191,9 +221,7 @@ if stock_symbol:
                 window=10, 
                 trend_type="support" if trend_tool == "支撐線" else "resistance"
             )
-
             if points:
-                # 繪製支撐/阻力點
                 x_points, y_points = zip(*points)
                 fig.add_trace(go.Scatter(
                     x=x_points,
@@ -210,7 +238,11 @@ if stock_symbol:
                         color='green' if trend_tool == "支撐線" else 'red',
                     )
                 ))
-
+                st.info(f"""
+                📊 { "支撐" if trend_tool == "支撐線" else "阻力" }點分析:
+                - 當前價格: ${close_prices[-1]:.2f}
+                - 已識別出 {len(points)} 個點
+                """)
         fig.update_layout(
             title='股票趨勢預測',
             yaxis_title='價格',
@@ -228,51 +260,6 @@ if stock_symbol:
         )
         st.plotly_chart(fig, use_container_width=True)
 
-        # 顯示預測結果分析
-        st.subheader("預測結果分析")
-        current_price = close_prices[-1]
-
-        if trend_tool == "趨勢線":
-            predicted_end_price = predicted_prices[-1]
-            price_change = (predicted_end_price - current_price) / current_price * 100
-
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric(
-                    "預測目標價",
-                    f"${predicted_end_price:.2f}",
-                    f"{price_change:.1f}%"
-                )
-            with col2:
-                st.metric(
-                    "上限目標價",
-                    f"${upper_bound[-1]:.2f}",
-                    f"+{((upper_bound[-1]-current_price)/current_price*100):.1f}%"
-                )
-            with col3:
-                st.metric(
-                    "下限目標價",
-                    f"${lower_bound[-1]:.2f}",
-                    f"{((lower_bound[-1]-current_price)/current_price*100):.1f}%"
-                )
-
-            st.info(f"""
-            📈 預測分析（{prediction_days}天）:
-            - 當前價格: ${current_price:.2f}
-            - 預測區間: ${lower_bound[-1]:.2f} ~ ${upper_bound[-1]:.2f}
-            - 信心水平: {confidence_level}%
-
-            ⚠️ 注意：此預測基於歷史數據趨勢，僅供參考。實際市場走勢可能受多種因素影響而有所不同。
-            """)
-        else:
-            trend_type = "支撐" if trend_tool == "支撐線" else "阻力"
-            st.info(f"""
-            📊 {trend_type}點分析:
-            - 當前價格: ${current_price:.2f}
-            - 已識別出 {len(points) if points else 0} 個{trend_type}點
-
-            ⚠️ 注意：{trend_type}點分析基於歷史價格波動，僅供參考。實際交易時需結合其他技術指標。
-            """)
     else:
         st.warning("無法獲取股票數據，請確認股票代碼是否正確。")
 else:
