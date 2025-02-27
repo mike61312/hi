@@ -11,10 +11,20 @@ def get_stock_data(symbol: str, period: str = "1y"):
     try:
         stock = yf.Ticker(symbol)
         hist = stock.history(period=period)
-        info = stock.info
+
+        if hist.empty:
+            st.error(f"無法獲取股票 {symbol} 的歷史數據")
+            return None, None
+
+        info = stock.info if hasattr(stock, 'info') else {}
+
+        # 確保 info 是字典類型
+        if info is None:
+            info = {}
+
         return hist, info
     except Exception as e:
-        st.error(f"獲取股票數據時發生錯誤: {str(e)}")
+        st.error(f"獲取股票 {symbol} 數據時發生錯誤: {str(e)}")
         return None, None
 
 def get_multiple_stocks_data(symbols: list, period: str = "1y"):
@@ -28,9 +38,11 @@ def get_multiple_stocks_data(symbols: list, period: str = "1y"):
         try:
             stock = yf.Ticker(symbol)
             hist = stock.history(period=period)
-            info = stock.info
-            all_data[symbol] = hist
-            all_info[symbol] = info
+            if not hist.empty:
+                all_data[symbol] = hist
+                all_info[symbol] = stock.info if hasattr(stock, 'info') else {}
+            else:
+                st.warning(f"無法獲取股票 {symbol} 的歷史數據")
         except Exception as e:
             st.error(f"獲取股票 {symbol} 數據時發生錯誤: {str(e)}")
 
@@ -85,6 +97,10 @@ def get_basic_metrics(info):
         if number >= 1_000:
             return f"{number/1_000:.2f}K"
         return f"{number:.2f}"
+
+    # 確保 info 是字典類型
+    if info is None:
+        info = {}
 
     metrics = {
         "市值": info.get("marketCap"),
