@@ -1,5 +1,6 @@
 import streamlit as st
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from utils import (
     get_stock_data, get_basic_metrics,
     calculate_ma, calculate_rsi, calculate_bollinger_bands
@@ -47,8 +48,12 @@ with st.sidebar:
     )
 
     show_rsi = st.checkbox("顯示RSI", value=False)
-
     show_bollinger = st.checkbox("顯示布林通道", value=False)
+
+    # 成交量分析選項
+    st.header("成交量分析")
+    show_volume = st.checkbox("顯示成交量", value=True)
+    volume_ma = st.checkbox("顯示成交量MA", value=False)
 
 # 主要內容
 if stock_symbol:
@@ -60,18 +65,27 @@ if stock_symbol:
         company_name = info.get('longName', stock_symbol)
         st.header(f"{company_name} ({stock_symbol})")
 
-        # 創建主圖表
+        # 創建圖表子圖
         fig = go.Figure()
+        fig = make_subplots(
+            rows=3, cols=1,
+            shared_xaxes=True,
+            vertical_spacing=0.03,
+            row_heights=[0.6, 0.2, 0.2]
+        )
 
         # 添加K線圖
-        fig.add_trace(go.Candlestick(
-            x=hist_data.index,
-            open=hist_data['Open'],
-            high=hist_data['High'],
-            low=hist_data['Low'],
-            close=hist_data['Close'],
-            name='K線圖'
-        ))
+        fig.add_trace(
+            go.Candlestick(
+                x=hist_data.index,
+                open=hist_data['Open'],
+                high=hist_data['High'],
+                low=hist_data['Low'],
+                close=hist_data['Close'],
+                name='K線圖'
+            ),
+            row=1, col=1
+        )
 
         # 添加移動平均線
         if show_ma:
@@ -79,69 +93,125 @@ if stock_symbol:
             ma_data = calculate_ma(hist_data, ma_periods)
             colors = ['rgba(255,82,82,0.8)', 'rgba(66,133,244,0.8)', 'rgba(52,168,83,0.8)']
             for ma, color in zip(show_ma, colors):
-                fig.add_trace(go.Scatter(
-                    x=hist_data.index,
-                    y=ma_data[ma],
-                    name=ma,
-                    line=dict(color=color, width=1)
-                ))
+                fig.add_trace(
+                    go.Scatter(
+                        x=hist_data.index,
+                        y=ma_data[ma],
+                        name=ma,
+                        line=dict(color=color, width=1)
+                    ),
+                    row=1, col=1
+                )
 
         # 添加布林通道
         if show_bollinger:
             ma20, upper, lower = calculate_bollinger_bands(hist_data)
-            fig.add_trace(go.Scatter(
-                x=hist_data.index,
-                y=upper,
-                name='上軌',
-                line=dict(color='rgba(128,128,128,0.4)', dash='dash'),
-                fill=None
-            ))
-            fig.add_trace(go.Scatter(
-                x=hist_data.index,
-                y=lower,
-                name='下軌',
-                line=dict(color='rgba(128,128,128,0.4)', dash='dash'),
-                fill='tonexty',
-                fillcolor='rgba(128,128,128,0.1)'
-            ))
+            fig.add_trace(
+                go.Scatter(
+                    x=hist_data.index,
+                    y=upper,
+                    name='上軌',
+                    line=dict(color='rgba(128,128,128,0.4)', dash='dash'),
+                    fill=None
+                ),
+                row=1, col=1
+            )
+            fig.add_trace(
+                go.Scatter(
+                    x=hist_data.index,
+                    y=lower,
+                    name='下軌',
+                    line=dict(color='rgba(128,128,128,0.4)', dash='dash'),
+                    fill='tonexty',
+                    fillcolor='rgba(128,128,128,0.1)'
+                ),
+                row=1, col=1
+            )
 
-        # 更新主圖表佈局
+        # 添加成交量圖表
+        if show_volume:
+            # 計算漲跌顏色
+            colors = ['red' if close > open else 'green'
+                     for close, open in zip(hist_data['Close'], hist_data['Open'])]
+
+            fig.add_trace(
+                go.Bar(
+                    x=hist_data.index,
+                    y=hist_data['Volume'],
+                    name='成交量',
+                    marker_color=colors,
+                    opacity=0.5
+                ),
+                row=2, col=1
+            )
+
+            if volume_ma:
+                # 添加成交量MA5
+                volume_ma5 = hist_data['Volume'].rolling(window=5).mean()
+                fig.add_trace(
+                    go.Scatter(
+                        x=hist_data.index,
+                        y=volume_ma5,
+                        name='成交量MA5',
+                        line=dict(color='rgba(66,133,244,0.8)', width=1)
+                    ),
+                    row=2, col=1
+                )
+
+        # 添加RSI指標
+        if show_rsi:
+            rsi = calculate_rsi(hist_data)
+            fig.add_trace(
+                go.Scatter(
+                    x=hist_data.index,
+                    y=rsi,
+                    name='RSI',
+                    line=dict(color='purple', width=1)
+                ),
+                row=3, col=1
+            )
+
+            # 添加超買超賣區域
+            fig.add_hline(
+                y=70,
+                line_color='red',
+                line_dash='dash',
+                line_width=1,
+                row=3, col=1
+            )
+            fig.add_hline(
+                y=30,
+                line_color='green',
+                line_dash='dash',
+                line_width=1,
+                row=3, col=1
+            )
+
+        # 更新圖表佈局
         fig.update_layout(
-            title='股票價格走勢',
+            title='股票走勢分析',
             yaxis_title='價格',
             xaxis_title='日期',
             template='plotly_white',
-            height=600
+            height=800,
+            showlegend=True,
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=1.02,
+                xanchor="right",
+                x=1
+            )
         )
 
-        # 顯示主圖表
-        st.plotly_chart(fig, use_container_width=True)
-
-        # 如果選擇顯示RSI，創建子圖表
+        # 更新子圖Y軸標題
+        fig.update_yaxes(title_text="價格", row=1, col=1)
+        fig.update_yaxes(title_text="成交量", row=2, col=1)
         if show_rsi:
-            rsi = calculate_rsi(hist_data)
-            fig_rsi = go.Figure()
-            fig_rsi.add_trace(go.Scatter(
-                x=hist_data.index,
-                y=rsi,
-                name='RSI',
-                line=dict(color='purple', width=1)
-            ))
+            fig.update_yaxes(title_text="RSI", row=3, col=1)
 
-            # 添加超買超賣區域
-            fig_rsi.add_hline(y=70, line_color='red', line_dash='dash', line_width=1)
-            fig_rsi.add_hline(y=30, line_color='green', line_dash='dash', line_width=1)
-
-            fig_rsi.update_layout(
-                title='相對強弱指標 (RSI)',
-                yaxis_title='RSI',
-                xaxis_title='日期',
-                template='plotly_white',
-                height=300,
-                yaxis=dict(range=[0, 100])
-            )
-
-            st.plotly_chart(fig_rsi, use_container_width=True)
+        # 顯示圖表
+        st.plotly_chart(fig, use_container_width=True)
 
         # 顯示基本指標
         st.subheader("基本財務指標")

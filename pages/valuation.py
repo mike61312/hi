@@ -1,5 +1,6 @@
 import streamlit as st
 import yfinance as yf
+import pandas as pd
 from utils.dcf_valuation import calculate_dcf_valuation
 
 # 設置頁面配置
