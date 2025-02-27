@@ -1,0 +1,10 @@
+[workflows]
+runButton = "Run"
+
+[[workflows.workflow]]
+name = "Run"
+author = 40067333
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py"
