@@ -111,12 +111,32 @@ def calculate_dcf_valuation(symbol: str,
     total_value = pv_fcf + pv_terminal
     
     # 獲取股票總股數
+    shares_outstanding = 0
     try:
-        shares_outstanding = yf.Ticker(symbol).info.get('sharesOutstanding', 0)
+        stock_info = yf.Ticker(symbol).info
+        # 優先使用流通在外股數 (Shares Outstanding)
+        shares_outstanding = stock_info.get('sharesOutstanding', 0)
+        
+        # 如果無法獲取 sharesOutstanding，嘗試使用其他相關欄位
+        if shares_outstanding == 0:
+            shares_outstanding = stock_info.get('floatShares', 0)
+        
+        # 如果還是無法獲取，使用市值除以股價的方法估算
+        if shares_outstanding == 0 and 'marketCap' in stock_info and 'regularMarketPrice' in stock_info:
+            market_cap = stock_info.get('marketCap', 0)
+            price = stock_info.get('regularMarketPrice', 0)
+            if price > 0:
+                shares_outstanding = market_cap / price
+        
         # 計算每股價值
-        value_per_share = total_value / shares_outstanding
-    except:
+        if shares_outstanding > 0:
+            value_per_share = total_value / shares_outstanding
+        else:
+            value_per_share = None
+            
+    except Exception as e:
         value_per_share = None
+        shares_outstanding = 0
     
     # 準備估值假設
     assumptions = {
@@ -128,6 +148,7 @@ def calculate_dcf_valuation(symbol: str,
         '預測期間現值': f'{pv_fcf:,.0f}',
         '終值': f'{pv_terminal:,.0f}',
         '總企業價值': f'{total_value:,.0f}',
+        '流通在外股數': f'{shares_outstanding:,.0f}' if shares_outstanding > 0 else 'N/A',
         '每股價值': f'{value_per_share:,.2f}' if value_per_share else 'N/A'
     }
     
