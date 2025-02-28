@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 import streamlit as st
+from utils import normalize_stock_prices, calculate_correlation_matrix, get_basic_metrics # Added imports for missing functions
 
 def get_stock_data(symbol: str, period: str = "1y"):
     """
@@ -48,25 +49,6 @@ def get_multiple_stocks_data(symbols: list, period: str = "1y"):
 
     return all_data, all_info
 
-def normalize_stock_prices(data_dict, method='percent'):
-    """
-    標準化股票價格以便比較
-    method: 'percent' 或 'z-score'
-    """
-    normalized_data = {}
-
-    for symbol, data in data_dict.items():
-        if method == 'percent':
-            # 轉換為漲跌幅
-            first_price = data['Close'].iloc[0]
-            normalized_data[symbol] = (data['Close'] - first_price) / first_price * 100
-        elif method == 'z-score':
-            # Z-score標準化
-            mean = data['Close'].mean()
-            std = data['Close'].std()
-            normalized_data[symbol] = (data['Close'] - mean) / std
-
-    return normalized_data
 
 def calculate_correlation_matrix(data_dict):
     """
