@@ -4,6 +4,7 @@ import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 from utils.dcf_valuation import calculate_dcf_valuation
+from utils.analyst_forecasts import display_analyst_forecasts
 
 # 設置頁面配置
 st.set_page_config(
@@ -74,6 +75,9 @@ if stock_symbol:
         # 顯示公司名稱和當前股價
         st.header(f"{company_name} ({stock_symbol})")
         st.subheader(f"當前股價: ${current_price:.2f}")
+        
+        # 顯示分析師預測數據
+        display_analyst_forecasts(stock_symbol)
         
         # 執行DCF估值計算
         with st.spinner("計算DCF估值中..."):

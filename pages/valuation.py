@@ -3,6 +3,7 @@ import yfinance as yf
 import pandas as pd
 import plotly.graph_objects as go
 from utils.dcf_valuation import calculate_dcf_valuation
+from utils.analyst_forecasts import display_analyst_forecasts
 
 # 設置頁面配置
 st.set_page_config(
@@ -189,6 +190,10 @@ if stock_symbol:
 
         with tab2:
             st.subheader("DCF估值分析")
+            
+            # 顯示分析師預測數據
+            display_analyst_forecasts(stock_symbol)
+            
             # 執行DCF估值
             assumptions, value_per_share = calculate_dcf_valuation(
                 stock_symbol,
