@@ -16,11 +16,11 @@ st.title("📊 股票比較")
 
 # 側邊欄配置
 with st.sidebar:
-    st.header("設置")
+    st.header("參數設定")
 
     # 多股票輸入
     stocks_input = st.text_area(
-        "請輸入股票代碼（每行一個）",
+        "股票代碼（每行一個）",
         placeholder="例如：\nAAPL\nMSFT\n2330.TW",
         help="輸入多個股票代碼，每行一個。台股請加上.TW後綴"
     )
@@ -35,7 +35,7 @@ with st.sidebar:
         "5年": "5y"
     }
     selected_period = st.selectbox(
-        "選擇時間範圍",
+        "時間範圍",
         options=list(period_options.keys())
     )
 

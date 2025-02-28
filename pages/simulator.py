@@ -16,9 +16,9 @@ st.title("🎯 股票走勢模擬器")
 
 # 側邊欄配置
 with st.sidebar:
-    st.header("設置")
+    st.header("參數設定")
     stock_symbol = st.text_input(
-        "請輸入股票代碼",
+        "股票代碼",
         placeholder="例如：AAPL, 2330.TW",
         help="輸入股票代碼，台股請加上.TW後綴"
     )
@@ -29,29 +29,29 @@ with st.sidebar:
         "1年": "1y"
     }
     selected_period = st.selectbox(
-        "選擇時間範圍",
+        "時間範圍",
         options=list(period_options.keys())
     )
     st.header("趨勢線工具")
     trend_tool = st.radio(
-        "選擇趨勢線類型",
+        "趨勢線類型",
         options=["支撐線", "阻力線", "趨勢線"],
         help="選擇要繪製的趨勢線類型"
     )
-    st.header("預測設置")
+    st.header("預測設定")
     prediction_days = st.slider(
         "預測天數",
         min_value=5,
         max_value=30,
         value=10,
-        help="設置要預測的天數"
+        help="設定要預測的天數"
     )
     confidence_level = st.slider(
         "信心水平 (%)",
         min_value=50,
         max_value=99,
         value=95,
-        help="設置預測區間的信心水平"
+        help="設定預測區間的信心水平"
     )
 
 def find_support_resistance_points(data, window=20, trend_type="support"):

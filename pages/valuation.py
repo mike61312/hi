@@ -17,21 +17,21 @@ st.title("💰 綜合估值分析")
 
 # 側邊欄配置
 with st.sidebar:
-    st.header("估值設置")
+    st.header("參數設定")
     stock_symbol = st.text_input(
-        "請輸入股票代碼",
+        "股票代碼",
         placeholder="例如：AAPL, 2330.TW",
         help="輸入股票代碼，台股請加上.TW後綴"
     )
 
     # DCF模型參數
-    st.subheader("DCF模型參數")
+    st.subheader("DCF模型設定")
     forecast_years = st.slider(
         "預測年數",
         min_value=3,
         max_value=10,
         value=5,
-        help="設置未來現金流預測的年數"
+        help="設定未來現金流預測的年數"
     )
     growth_rate = st.number_input(
         "年增長率 (%)",
@@ -39,7 +39,7 @@ with st.sidebar:
         max_value=50.0,
         value=None,
         placeholder="留空將使用歷史數據計算",
-        help="設置預測期間的年度增長率，留空將根據歷史數據計算"
+        help="設定預測期間的年度增長率，留空將根據歷史數據計算"
     )
     terminal_growth = st.slider(
         "永續增長率 (%)",
@@ -47,7 +47,7 @@ with st.sidebar:
         max_value=5.0,
         value=2.5,
         step=0.1,
-        help="設置永續期的增長率"
+        help="設定永續期的增長率"
     )
     discount_rate = st.slider(
         "折現率 (%)",
@@ -55,11 +55,11 @@ with st.sidebar:
         max_value=20.0,
         value=10.0,
         step=0.5,
-        help="設置現金流折現率"
+        help="設定現金流折現率"
     )
 
     # 相對估值設置
-    st.subheader("相對估值設置")
+    st.subheader("相對估值設定")
     selected_metrics = st.multiselect(
         "選擇估值指標",
         options=["本益比(P/E)", "本益成長比(PEG)", "股價淨值比(P/B)", "股價營收比(P/S)", "企業價值倍數(EV/EBITDA)"],
