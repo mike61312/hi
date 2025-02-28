@@ -61,8 +61,8 @@ with st.sidebar:
     st.subheader("相對估值設置")
     selected_metrics = st.multiselect(
         "選擇估值指標",
-        options=["本益比(P/E)", "股價淨值比(P/B)", "股價營收比(P/S)", "企業價值倍數(EV/EBITDA)"],
-        default=["本益比(P/E)", "股價淨值比(P/B)"],
+        options=["本益比(P/E)", "本益成長比(PEG)", "股價淨值比(P/B)", "股價營收比(P/S)", "企業價值倍數(EV/EBITDA)"],
+        default=["本益比(P/E)", "本益成長比(PEG)", "股價淨值比(P/B)"],
         help="選擇要分析的估值指標"
     )
 
@@ -80,6 +80,36 @@ def calculate_relative_valuation(info):
             '預期值': forward_pe,
             '行業中位數': info.get('industryPE', 'N/A')
         }
+    
+    if "本益成長比(PEG)" in selected_metrics:
+        pe_ratio = info.get('trailingPE')
+        # 獲取預估的成長率
+        try:
+            # 嘗試從不同的來源獲取成長率
+            growth_rate = info.get('earningsGrowth', 0)
+            if growth_rate == 0:
+                growth_rate = info.get('earningsQuarterlyGrowth', 0)
+            if growth_rate == 0:
+                growth_rate = info.get('revenueGrowth', 0) 
+            
+            # 計算PEG比率，避免除以零
+            if growth_rate and growth_rate != 0 and pe_ratio:
+                peg_ratio = pe_ratio / (growth_rate * 100)  # 成長率通常是以小數表示，轉換為百分比
+            else:
+                peg_ratio = None
+                
+            metrics['本益成長比(PEG)'] = {
+                '當前值': peg_ratio,
+                '成長率': f"{growth_rate*100:.2f}%" if growth_rate else "N/A",
+                '參考值': "< 1.0 理想"
+            }
+        except Exception:
+            # 如果計算時出錯，設置為None
+            metrics['本益成長比(PEG)'] = {
+                '當前值': None,
+                '成長率': "N/A",
+                '參考值': "< 1.0 理想"
+            }
 
     if "股價淨值比(P/B)" in selected_metrics:
         pb_ratio = info.get('priceToBook')
@@ -128,6 +158,8 @@ def display_valuation_metrics(metrics):
             # 添加指標說明
             if metric_name == "本益比(P/E)":
                 st.info("本益比反映投資人願意為每元盈餘支付的價格，較低的本益比可能代表股票被低估。")
+            elif metric_name == "本益成長比(PEG)":
+                st.info("PEG是本益比除以年度盈餘成長率的結果，小於1通常被視為有吸引力的投資。PEG能更好地評估成長型公司的相對估值。")
             elif metric_name == "股價淨值比(P/B)":
                 st.info("股價淨值比反映投資人願意為每元淨資產支付的價格，較低的股價淨值比可能代表股票具有安全邊際。")
             elif metric_name == "股價營收比(P/S)":
