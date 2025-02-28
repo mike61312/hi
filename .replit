@@ -1,7 +1,7 @@
 modules = ["python-3.11"]
 
 [workflows]
-runButton = "Project"
+runButton = "Streamlit App"
 
 [[workflows.workflow]]
 name = "Run"
@@ -32,7 +32,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "streamlit run main.py"
+args = "cd /home/runner/workspace && streamlit run main.py"
 waitForPort = 5000
 
 [nix]
