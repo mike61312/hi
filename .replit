@@ -32,7 +32,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd /home/runner/workspace && streamlit run pages/valuation.py"
+args = "streamlit run main.py"
 waitForPort = 5000
 
 [nix]
