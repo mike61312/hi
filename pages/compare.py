@@ -12,7 +12,7 @@ st.set_page_config(
 )
 
 # 標題
-st.title("📊 股票比較分析")
+st.title("📊 股票比較")
 
 # 側邊欄配置
 with st.sidebar:

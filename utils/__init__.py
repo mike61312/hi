@@ -1,4 +1,3 @@
-
 # 匯入所有工具函數，使它們可以從utils包直接導入
 
 # 技術指標
@@ -20,7 +19,13 @@ from utils.dcf_valuation import (
 from utils.analyst_forecasts import display_analyst_forecasts
 
 # 股票數據函數
-from utils.stock_data import get_stock_data
+from utils.stock_data import (
+    get_stock_data,
+    get_multiple_stocks_data,
+    normalize_stock_prices,
+    calculate_correlation_matrix,
+    get_basic_metrics
+)
 
 # 添加缺少的函數
 def get_multiple_stocks_data(symbols, period):

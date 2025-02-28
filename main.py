@@ -34,24 +34,24 @@ with col1:
     st.markdown("[開始估值分析 →](/股票智能分析平台/估值分析)")
 
 with col2:
-    st.markdown("### 💲 DCF估值計算器")
+    st.markdown("### 💲 DCF估值計算")
     st.markdown("""
     專業的現金流折現估值工具:
     - 分析師預測整合
     - 敏感度分析
     - 估值結果視覺化
     """)
-    st.markdown("[使用DCF估值 →](/股票智能分析平台/DCF估值計算器)")
+    st.markdown("[使用DCF估值 →](/股票智能分析平台/DCF估值計算)")
 
 with col3:
-    st.markdown("### 📊 股票比較與趨勢分析")
+    st.markdown("### 📊 股票比較")
     st.markdown("""
     比較多支股票表現:
     - 價格趨勢比較
     - 相關性分析
     - 技術指標模擬
     """)
-    st.markdown("[開始比較分析 →](/股票智能分析平台/股票比較分析)")
+    st.markdown("[開始比較分析 →](/股票智能分析平台/股票比較)")
 
 # 使用說明
 st.markdown("---")
