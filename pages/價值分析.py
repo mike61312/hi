@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from utils.dcf_valuation import calculate_dcf_valuation
 from utils.analyst_forecasts import display_analyst_forecasts
 
+
 # 設置頁面配置
 st.set_page_config(
     page_title="股票估值分析",
@@ -63,77 +64,68 @@ with st.sidebar:
     selected_metrics = st.multiselect(
         "選擇估值指標",
         options=["本益比(P/E)", "本益成長比(PEG)", "股價淨值比(P/B)", "股價營收比(P/S)", "企業價值倍數(EV/EBITDA)"],
-        default=["本益比(P/E)", "本益成長比(PEG)", "股價淨值比(P/B)"],
-        help="選擇要分析的估值指標"
+        default=["本益比(P/E)", "本益成長比(PEG)", "股價淨值比(P/B)"]
     )
 
 def calculate_relative_valuation(info):
-    """
-    計算相對估值指標
-    """
-    metrics = {}
+            metrics = {}
 
-    if "本益比(P/E)" in selected_metrics:
-        pe_ratio = info.get('trailingPE')
-        forward_pe = info.get('forwardPE')
-        metrics['本益比(P/E)'] = {
-            '當前值': pe_ratio,
-            '預期值': forward_pe,
-            '行業中位數': info.get('industryPE', 'N/A')
-        }
-    
-    if "本益成長比(PEG)" in selected_metrics:
-        pe_ratio = info.get('trailingPE')
-        # 獲取預估的成長率
-        try:
-            # 嘗試從不同的來源獲取成長率
-            growth_rate = info.get('earningsGrowth', 0)
-            if growth_rate == 0:
-                growth_rate = info.get('earningsQuarterlyGrowth', 0)
-            if growth_rate == 0:
-                growth_rate = info.get('revenueGrowth', 0) 
-            
-            # 計算PEG比率，避免除以零
-            if growth_rate and growth_rate != 0 and pe_ratio:
-                peg_ratio = pe_ratio / (growth_rate * 100)  # 成長率通常是以小數表示，轉換為百分比
-            else:
-                peg_ratio = None
-                
-            metrics['本益成長比(PEG)'] = {
-                '當前值': peg_ratio,
-                '成長率': f"{growth_rate*100:.2f}%" if growth_rate else "N/A",
-                '參考值': "< 1.0 理想"
-            }
-        except Exception:
-            # 如果計算時出錯，設置為None
-            metrics['本益成長比(PEG)'] = {
-                '當前值': None,
-                '成長率': "N/A",
-                '參考值': "< 1.0 理想"
-            }
+            if "本益比(P/E)" in selected_metrics:
+                pe_ratio = info.get('trailingPE')
+                forward_pe = info.get('forwardPE')
+                metrics['本益比(P/E)'] = {
+                    '當前值': format_value(pe_ratio),
+                    '預期值': format_value(forward_pe),
+                    '行業中位數': format_value(info.get('industryPE', 'N/A'))
+                }
 
-    if "股價淨值比(P/B)" in selected_metrics:
-        pb_ratio = info.get('priceToBook')
-        metrics['股價淨值比(P/B)'] = {
-            '當前值': pb_ratio,
-            '行業中位數': info.get('industryPB', 'N/A')
-        }
+            if "本益成長比(PEG)" in selected_metrics:
+                pe_ratio = info.get('trailingPE')
 
-    if "股價營收比(P/S)" in selected_metrics:
-        ps_ratio = info.get('priceToSalesTrailing12Months')
-        metrics['股價營收比(P/S)'] = {
-            '當前值': ps_ratio,
-            '行業中位數': info.get('industryPS', 'N/A')
-        }
+                # 嘗試從分析師預估成長率
+                estimated_growth_rate = info.get('growthEstimates', {}).get('avg', None)
 
-    if "企業價值倍數(EV/EBITDA)" in selected_metrics:
-        ev_ebitda = info.get('enterpriseToEbitda')
-        metrics['企業價值倍數(EV/EBITDA)'] = {
-            '當前值': ev_ebitda,
-            '行業中位數': info.get('industryEVEBITDA', 'N/A')
-        }
+                if estimated_growth_rate is None:
+                    estimated_growth_rate = info.get('earningsGrowth', None)
+                    growth_source = "歷史盈餘增長率 (earningsGrowth)"
 
-    return metrics
+                if estimated_growth_rate is None:
+                    estimated_growth_rate = info.get('revenueGrowth', None)
+                    growth_source = "歷史營收增長率 (revenueGrowth)"
+
+                # 計算 PEG 防止除以零
+                peg_ratio = (pe_ratio / (estimated_growth_rate * 100)) if pe_ratio and estimated_growth_rate else None
+
+                metrics['本益成長比(PEG)'] = {
+                    'PEG 值': format_value(peg_ratio),
+                    '使用的成長率': f"{estimated_growth_rate * 100:.2f}%" if estimated_growth_rate else "N/A",
+                    '成長率來源': growth_source,  # 不再顯示錯誤訊息
+                    '參考值': "< 1.0 理想"
+                }
+
+            if "股價淨值比(P/B)" in selected_metrics:
+                pb_ratio = info.get('priceToBook')
+                metrics['股價淨值比(P/B)'] = {
+                    '當前值': format_value(pb_ratio),
+                    '行業中位數': format_value(info.get('industryPB', 'N/A'))
+                }
+
+            if "股價營收比(P/S)" in selected_metrics:
+                ps_ratio = info.get('priceToSalesTrailing12Months')
+                metrics['股價營收比(P/S)'] = {
+                    '當前值': format_value(ps_ratio),
+                    '行業中位數': format_value(info.get('industryPS', 'N/A'))
+                }
+
+            if "企業價值倍數(EV/EBITDA)" in selected_metrics:
+                ev_ebitda = info.get('enterpriseToEbitda')
+                metrics['企業價值倍數(EV/EBITDA)'] = {
+                    '當前值': format_value(ev_ebitda),
+                    '行業中位數': format_value(info.get('industryEVEBITDA', 'N/A'))
+                }
+
+            return metrics
+
 
 def format_value(value):
     """
@@ -156,7 +148,6 @@ def display_valuation_metrics(metrics):
                 formatted_value = format_value(value)
                 col.metric(key, formatted_value)
 
-            # 添加指標說明
             if metric_name == "本益比(P/E)":
                 st.info("本益比反映投資人願意為每元盈餘支付的價格，較低的本益比可能代表股票被低估。")
             elif metric_name == "本益成長比(PEG)":
@@ -190,10 +181,10 @@ if stock_symbol:
 
         with tab2:
             st.subheader("DCF估值分析")
-            
+
             # 顯示分析師預測數據
             display_analyst_forecasts(stock_symbol)
-            
+
             # 執行DCF估值
             assumptions, value_per_share = calculate_dcf_valuation(
                 stock_symbol,

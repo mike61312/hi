@@ -6,6 +6,7 @@ runButton = "股票分析應用"
 [[workflows.workflow]]
 name = "執行"
 author = 40067333
+mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
@@ -25,7 +26,7 @@ name = "股票分析應用"
 author = "agent"
 
 [workflows.workflow.metadata]
-agentRequireRestartOnSave = false
+agentRequireResartOnSave = false
 
 [[workflows.workflow.tasks]]
 task = "packager.installForAll"
@@ -34,6 +35,14 @@ task = "packager.installForAll"
 task = "shell.exec"
 args = "cd /home/runner/workspace && streamlit run main.py"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "運行 new.py"
+author = 40067333
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "streamlit run new.py"
 
 [nix]
 channel = "stable-24_05"
@@ -45,3 +54,4 @@ run = ["sh", "-c", "streamlit run main.py"]
 [[ports]]
 localPort = 5000
 externalPort = 80
+

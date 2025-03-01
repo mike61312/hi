@@ -1,0 +1,58 @@
+def calculate_relative_valuation(info):
+    metrics = {}
+
+    if "本益比(P/E)" in selected_metrics:
+        pe_ratio = info.get('trailingPE')
+        forward_pe = info.get('forwardPE')
+        metrics['本益比(P/E)'] = {
+            '當前值': format_value(pe_ratio),
+            '預期值': format_value(forward_pe),
+            '行業中位數': format_value(info.get('industryPE', 'N/A'))
+        }
+
+    if "本益成長比(PEG)" in selected_metrics:
+        pe_ratio = info.get('trailingPE')
+
+        # 嘗試從分析師預估成長率
+        estimated_growth_rate = info.get('growthEstimates', {}).get('avg', None)
+
+        if estimated_growth_rate is None:
+            estimated_growth_rate = info.get('earningsGrowth', None)
+            growth_source = "歷史盈餘增長率 (earningsGrowth)"
+
+        if estimated_growth_rate is None:
+            estimated_growth_rate = info.get('revenueGrowth', None)
+            growth_source = "歷史營收增長率 (revenueGrowth)"
+
+        # 計算 PEG 防止除以零
+        peg_ratio = (pe_ratio / (estimated_growth_rate * 100)) if pe_ratio and estimated_growth_rate else None
+
+        metrics['本益成長比(PEG)'] = {
+            'PEG 值': format_value(peg_ratio),
+            '使用的成長率': f"{estimated_growth_rate * 100:.2f}%" if estimated_growth_rate else "N/A",
+            '成長率來源': growth_source,  # 不再顯示錯誤訊息
+            '參考值': "< 1.0 理想"
+        }
+
+    if "股價淨值比(P/B)" in selected_metrics:
+        pb_ratio = info.get('priceToBook')
+        metrics['股價淨值比(P/B)'] = {
+            '當前值': format_value(pb_ratio),
+            '行業中位數': format_value(info.get('industryPB', 'N/A'))
+        }
+
+    if "股價營收比(P/S)" in selected_metrics:
+        ps_ratio = info.get('priceToSalesTrailing12Months')
+        metrics['股價營收比(P/S)'] = {
+            '當前值': format_value(ps_ratio),
+            '行業中位數': format_value(info.get('industryPS', 'N/A'))
+        }
+
+    if "企業價值倍數(EV/EBITDA)" in selected_metrics:
+        ev_ebitda = info.get('enterpriseToEbitda')
+        metrics['企業價值倍數(EV/EBITDA)'] = {
+            '當前值': format_value(ev_ebitda),
+            '行業中位數': format_value(info.get('industryEVEBITDA', 'N/A'))
+        }
+
+    return metrics

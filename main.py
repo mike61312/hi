@@ -1,4 +1,3 @@
-
 import streamlit as st
 import sys
 import os
@@ -31,7 +30,7 @@ with col1:
     - DCF 估值模型
     - 財務指標分析
     """)
-    st.markdown("[開始估值分析 →](/股票智能分析平台/估值分析)")
+    #st.markdown("[開始估值分析 →](/股票智能分析平台/估值分析)")
 
 with col2:
     st.markdown("### 💲 DCF估值計算")
@@ -41,7 +40,7 @@ with col2:
     - 敏感度分析
     - 估值結果視覺化
     """)
-    st.markdown("[使用DCF估值 →](/股票智能分析平台/DCF估值計算)")
+    #st.markdown("[使用DCF估值 →](/股票智能分析平台/DCF估值計算)")
 
 with col3:
     st.markdown("### 📊 股票比較")
@@ -51,7 +50,7 @@ with col3:
     - 相關性分析
     - 技術指標模擬
     """)
-    st.markdown("[開始比較分析 →](/股票智能分析平台/股票比較)")
+    #st.markdown("[開始比較分析 →](/股票智能分析平台/股票比較)")
 
 # 使用說明
 st.markdown("---")
